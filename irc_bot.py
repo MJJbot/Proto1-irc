@@ -66,11 +66,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             # c.privmsg(self.channel, "Did not understand command: " \+ cmd)
     
 
-def main():  
+def main(channel):  
     username = "kvccdejj" 
     client_id = "hqiwd4o8a3mf6l7t7l0xge8qt7ksob" # Client ID  
     token = "la6kj4pn3vzfdvvkfrg8y5eqvbuxjk" # oauth: 는 빼고 뒷부분만 적어주시면 됩니다.  
-    channels = str(sys.argv[1])
+    channels = channel#str(sys.argv[1])
     a = TwitchBot(username, client_id, token, channels)
     a.start()
     # while running:
