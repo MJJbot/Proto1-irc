@@ -1,21 +1,27 @@
-import subprocess
-from threading import Thread, Lock
+from threading import Thread
 import time
 import irc_bot
 
-def run_pro(channel):
-    #proc = subprocess.Popen(['python3', 'irc_bot.py', channel])
+bots = []
+
+def run_thread(channel):
+    # bot = irc_bot()
     th = Thread(target=irc_bot.main, args=(channel, ))
     th.start()
-    #return proc
+
+    return th
+
+# def disconn_bot(channel, thread):
+#     thread.
 
 processes = []
-channels = ['handongsuk', 'looksam']
+channels = ['saddummy', 'lol_crown', 'rhdgurwns']
 
 for i in channels:
-    print("exec bot to " + i)
-    proc = run_pro(i)
+    thread = run_thread(i)
     #processes.append(proc)
+
+
 
 # for proc in processes:
 #     proc.communicate()
