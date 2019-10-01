@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*- 
-import sys  
+
+
 import irc.bot  
 import requests  
 from threading import Lock, Thread
@@ -34,6 +35,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             #self.do_command(e, cmd)  
         return  
 
+
   
     # def do_command(self, e, cmd):  
     #     c = self.connection  
@@ -60,7 +62,7 @@ def main(channel):
     username = "kvccdejj" 
     client_id = "hqiwd4o8a3mf6l7t7l0xge8qt7ksob" 
     token = "la6kj4pn3vzfdvvkfrg8y5eqvbuxjk" 
-    channels = channel#str(sys.argv[1])
+    channels = channel 
     a = TwitchBot(username, client_id, token, channels)
     a.start()
     
