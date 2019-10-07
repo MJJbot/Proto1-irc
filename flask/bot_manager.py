@@ -9,7 +9,7 @@ app = Flask(__name__)
 api = Api(app)
 
 bots = []
-threads = []
+channels = []
 
 class CreateBot(Resource):
     def post(self):
@@ -17,22 +17,38 @@ class CreateBot(Resource):
             parser = reqparse.RequestParser()
             parser.add_argument('channel', type=str)
             args = parser.parse_args()
-
             _channel = args['channel']
-            print(_channel)
-            threads.append(run_thread(_channel))
+            if 'channel' in channels:
+                bots[channels.index('channel')].bot.connection.reconnect()
+            else:   
+                channels.append(_channel)
+                run_thread(_channel)
 
             return {'status' : 'success'}
         except Exception as e:
             return {'error' : e}
 
+    def delete(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('channel', type=str)
+            args = parser.parse_args()
+            _channel = args['channel']
+            bots[channels.index(_channel)].bot_stop()
+            return {'status' : 'success'}
+
+        except Exception as e:
+            return {'error' : e}
+
+
+
 api.add_resource(CreateBot, '/bot')
 
-
 def run_thread(channel):
-    th = Thread(target=irc_bot.main, args=(channel, ))
-    th.start()
-    return th
+    bot = irc_bot.botThread(channel)
+    bots.append(bot)
+    bot.start()
+    return 
 
 
 if __name__ == '__main__':

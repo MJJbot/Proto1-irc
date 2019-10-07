@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*- 
-
-
 import irc.bot  
 import requests  
-from threading import Lock, Thread
+import abc
+from threading import Lock, Thread, Event
   
   
 class TwitchBot(irc.bot.SingleServerIRCBot):  
@@ -34,6 +33,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print('Received command: ' + cmd)  
             #self.do_command(e, cmd)  
         return  
+    
+    def bot_disconnect(self, c, e):
+        print(self.channel + '에서 퇴장합니다.')
+        self.reactor.connection_class.disconnect("QUIT")
 
 
   
@@ -58,13 +61,50 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             # c.privmsg(self.channel, "Did not understand command: " \+ cmd)
     
 
-def main(channel):  
-    username = "kvccdejj" 
-    client_id = "hqiwd4o8a3mf6l7t7l0xge8qt7ksob" 
-    token = "la6kj4pn3vzfdvvkfrg8y5eqvbuxjk" 
-    channels = channel 
-    a = TwitchBot(username, client_id, token, channels)
-    a.start()
+class StoppableThread(Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
+
+    def __init__(self):
+        super(StoppableThread, self).__init__()
+        self._stop_event = Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
     
-if __name__ == "__main__":  
-    main()
+
+
+class botThread(StoppableThread):
+    def __init__(self, channel):
+        StoppableThread.__init__(self)
+        self.username = "kvccdejj"
+        self.client_id = "hqiwd4o8a3mf6l7t7l0xge8qt7ksob" 
+        self.token = "la6kj4pn3vzfdvvkfrg8y5eqvbuxjk" 
+        self.channel = channel 
+        self.bot = TwitchBot(self.username, self.client_id, self.token, self.channel)
+        #self.thread = Thread(target=self.bot.start, daemon=True)
+        self.status = 1
+
+    #def bot_start(self):  
+        #self.bot = TwitchBot(username, client_id, token, channels)
+        #self.bot.start()
+        #self.thread.start()
+
+        # def bot_start(self):
+        #     self.a.start()
+    def bot_stop(self):
+        self.bot.connection.quit("QUIT")
+        self.stop()
+
+    def run(self):
+        self.bot.start()
+
+
+
+class reconnectStrategy(irc.bot.ReconnectStrategy):
+    def run(self, bot):
+        return
+
