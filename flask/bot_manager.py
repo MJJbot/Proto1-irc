@@ -18,8 +18,9 @@ class CreateBot(Resource):
             parser.add_argument('channel', type=str)
             args = parser.parse_args()
             _channel = args['channel']
-            if 'channel' in channels:
-                bots[channels.index('channel')].bot.connection.reconnect()
+
+            if _channel in channels:
+                bots[channels.index(_channel)].bot.connection.reconnect()
             else:   
                 channels.append(_channel)
                 run_thread(_channel)
