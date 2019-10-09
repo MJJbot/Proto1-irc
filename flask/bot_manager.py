@@ -1,9 +1,7 @@
-from threading import Thread
-import time
-import irc_bot
 from flask import Flask
 from flask_restful import Resource, Api
 from flask_restful import reqparse
+from bot_instance import bot_instance 
 
 app = Flask(__name__)
 api = Api(app)
@@ -18,13 +16,13 @@ class CreateBot(Resource):
             parser.add_argument('channel', type=str)
             args = parser.parse_args()
             _channel = args['channel']
-
+            
             if _channel in channels:
-                bots[channels.index(_channel)].bot.connection.reconnect()
-            else:   
+                bots[channels.index(_channel)].chat.irc.join_channel(_channel)
+            else:
+                bots.append(bot_instance(_channel))
                 channels.append(_channel)
-                run_thread(_channel)
-
+            
             return {'status' : 'success'}
         except Exception as e:
             return {'error' : e}
@@ -35,30 +33,16 @@ class CreateBot(Resource):
             parser.add_argument('channel', type=str)
             args = parser.parse_args()
             _channel = args['channel']
-            bots[channels.index(_channel)].bot_stop()
-            return {'status' : 'success'}
 
+            bots[channels.index(_channel)].chat.irc.leave_channel(_channel)
+            
+            return {'status' : 'success'}
         except Exception as e:
             return {'error' : e}
 
 
-
 api.add_resource(CreateBot, '/bot')
-
-def run_thread(channel):
-    bot = irc_bot.botThread(channel)
-    bots.append(bot)
-    bot.start()
-    return 
-
 
 if __name__ == '__main__':
     app.run(debug=True)
-# def disconn_bot(channel, thread):
-#     thread.
-
-
-    
-# for proc in processes:
-#     proc.communicate()
 
