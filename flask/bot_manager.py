@@ -1,48 +1,27 @@
-from flask import Flask
-from flask_restful import Resource, Api
-from flask_restful import reqparse
-from bot_instance import bot_instance 
+import twitch
+import twitch.helix as helix
+from datetime import timedelta
+from bot_instance import bot_instance
+import threading
 
-app = Flask(__name__)
-api = Api(app)
+helix_api = twitch.Helix('hqiwd4o8a3mf6l7t7l0xge8qt7ksob', use_cache=True, cache_duration=timedelta(minutes=3))
 
 bots = []
-channels = []
+channels = ["kvccdejj", "hanseungho", "pacific8815"]
 
-class CreateBot(Resource):
-    def post(self):
+for i in channels:
+    bots.append(bot_instance(i))
+
+def check_onair(channels):
+    for i in channels:
         try:
-            parser = reqparse.RequestParser()
-            parser.add_argument('channel', type=str)
-            args = parser.parse_args()
-            _channel = args['channel']
-            
-            if _channel in channels:
-                bots[channels.index(_channel)].chat.irc.join_channel(_channel)
-            else:
-                bots.append(bot_instance(_channel))
-                channels.append(_channel)
-            
-            return {'status' : 'success'}
-        except Exception as e:
-            return {'error' : e}
-
-    def delete(self):
-        try:
-            parser = reqparse.RequestParser()
-            parser.add_argument('channel', type=str)
-            args = parser.parse_args()
-            _channel = args['channel']
-
-            bots[channels.index(_channel)].chat.irc.leave_channel(_channel)
-            
-            return {'status' : 'success'}
-        except Exception as e:
-            return {'error' : e}
+            stream: helix.Stream = helix_api.stream(user_login=i)
+        except Exception:
+            bots[channels.index(i)].stop_bot()
+    # for i in streams.__iter__():
+    #     if i.t
 
 
-api.add_resource(CreateBot, '/bot')
+threading.Thread(target=check_onair, args=(channels, )).start()
 
-if __name__ == '__main__':
-    app.run(debug=True)
 
