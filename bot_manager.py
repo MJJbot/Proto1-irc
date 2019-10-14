@@ -2,24 +2,27 @@ import twitch
 import twitch.helix as helix
 from datetime import timedelta
 from bot_instance import bot_instance
-import threading
+from flask import Flask, request
 
-helix_api = twitch.Helix('hqiwd4o8a3mf6l7t7l0xge8qt7ksob', use_cache=True, cache_duration=timedelta(minutes=3))
+app = Flask(__name__)
+
+helix_api = twitch.Helix('hqiwd4o8a3mf6l7t7l0xge8qt7ksob', use_cache=True, cache_duration=timedelta(minutes=1))
 
 bots = []
-channels = ["kvccdejj", "hanseungho", "pacific8815"]
+channels = ["kvccdejj", "hanseungho"]
 
 for i in channels:
     bots.append(bot_instance(i))
 
-def check_onair(channels):
-    for i in channels:
-        try:
-            stream: helix.Stream = helix_api.stream(user_login=i)
-        except Exception:
-            bots[channels.index(i)].stop_bot()
-    # for i in streams.__iter__():
-    #     if i.t
+@app.route('/streamChangeCallback')
+def streamChangeCallback():
+    result = request.data.decode('uft-8')
+    if result['data']:
+        print("start bot")
+        bots[channels.index(result['data'][0]['username'])].start_bot()
+    else :
+        print("stop bot")
+        bots[channels.index(result['data'][0]['username'])].stop_bot()
 
-
-threading.Thread(target=check_onair, args=(channels, )).start()
+if __name__ == '__main__':
+    app.run(debug=True)
